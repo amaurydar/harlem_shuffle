@@ -106,7 +106,7 @@ class Subject(object):
         for type in ('preictal', 'ictal', 'test'):
             i = 0
             filepath = '%s/%s_%s_%s_segment_%04d.mat' % (self.dir, self.race, self.n, type, i)
-
+            print filepath
             currentSegment = None
             previousSeq = -1
             while os.path.exists(filepath):
