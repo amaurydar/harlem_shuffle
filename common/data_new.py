@@ -5,9 +5,6 @@ import os
 import scipy.io
 import numpy as np
 
-print __file__
-def test():
-    print os.path.abspath(__file__)
 class Segment(object):
     def __init__(self):
         pass
@@ -25,7 +22,7 @@ class Segment(object):
             self.slices = [slice(0, mat[name][0][0][0].shape[1])]
 
             self.seq_numbers = [mat[name][0][0][4]]
-            with open('SETTINGS.json') as f:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'SETTINGS.json')) as f:
                 settings = json.load(f)
 
             if 'Dog' in filepath:
@@ -100,7 +97,7 @@ class Subject(object):
         self.race = race
         self.n = n
 
-        with open('SETTINGS.json') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'SETTINGS.json')) as f:
             settings = json.load(f)
         self.dir = str(settings['data-dir']) + '/%s_%s' % (self.race, self.n)
 
