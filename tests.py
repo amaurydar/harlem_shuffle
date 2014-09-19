@@ -1,3 +1,5 @@
 from common import data_new
+import sys
 
-dog = data_new.Subject('Dog', 1)
+print sys.path
+data_new.test()

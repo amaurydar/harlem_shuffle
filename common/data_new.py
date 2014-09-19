@@ -7,7 +7,7 @@ import numpy as np
 
 print __file__
 def test():
-    print __file__
+    print os.path.abspath(__file__)
 class Segment(object):
     def __init__(self):
         pass
