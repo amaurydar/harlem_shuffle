@@ -5,6 +5,7 @@ import os
 import scipy.io
 import numpy as np
 
+__file__ = "data_new.py"
 package_directory = os.path.dirname(os.path.abspath(__file__))
 
 class Segment(object):
