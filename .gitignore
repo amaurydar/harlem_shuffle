@@ -3,6 +3,7 @@
 .idea/
 #
 .DS_Store
+LOCAL_SETTINGS.json
 *.iml
 *.iws
 # Byte-compiled / optimized / DLL files
