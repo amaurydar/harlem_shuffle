@@ -98,7 +98,7 @@ class Subject(object):
     def __init__(self, race, n):
         self.race = race
         self.n = n
-        with open(package_directory = os.path.dirname(os.path.abspath(__file__))) as f:
+        with open(os.path.join(package_directory, 'SETTINGS.json')) as f:
             settings = json.load(f)
         self.dir = str(settings['data-dir']) + '/%s_%s' % (self.race, self.n)
 
