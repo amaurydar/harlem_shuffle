@@ -22,6 +22,8 @@ class Segment(object):
                     name = a
             self.duration = float(mat[name][0][0][1][0][0])
             self.slices = [slice(0, mat[name][0][0][0].shape[1])]
+            self.length = mat[name][0][0][0].shape[1]
+            self.n_electrodes = mat[name][0][0][0].shape[0]
             try:
                 self.seq_numbers = [int(mat[name][0][0][4][0][0])]
             except:
@@ -61,26 +63,31 @@ class Segment(object):
             raise Exception("incorrect filepath")
 
     def __add__(self, segment):
-        res = Segment()
-        res.filepathes = self.filepathes + segment.filepathes
-        res.duration = self.duration + segment.duration
-        res.slices = self.slices + segment.slices
-        res.seq_numbers = self.seq_numbers + segment.seq_numbers
-        res.data = None
-        if self.data is not None and segment.data is not None:
-            res.data = np.concatenate((self.data, segment.data), axis=1)
-        res.tts = self.tts
-        if self.type == segment.type:
-            res.type = self.type
+        if self.n_electrodes == segment.n_electrodes:
+            res = Segment()
+            res.n_electrodes = self.n_electrodes
+            res.length = self.length + segment.length
+            res.filepathes = self.filepathes + segment.filepathes
+            res.duration = self.duration + segment.duration
+            res.slices = self.slices + segment.slices
+            res.seq_numbers = self.seq_numbers + segment.seq_numbers
+            res.data = None
+            if self.data is not None and segment.data is not None:
+                res.data = np.concatenate((self.data, segment.data), axis=1)
+            res.tts = self.tts
+            if self.type == segment.type:
+                res.type = self.type
+            else:
+                raise Exception("trying to concatenate two segments of different type")
+            return res
         else:
-            raise Exception("trying to concatenate two segments of different type")
-        return res
+            raise Exception("trying to concatenate two segments with different n_electrodes")
 
     def point(self, time):
-        return int(time / self.duration * (sum(slice.stop - slice.start for slice in self.slices)))
+        return int(float(time) / self.duration * self.length)
 
     def time(self, point):
-        return float(point) / sum(slice.stop - slice.start for slice in self.slices) * self.duration
+        return float(point) / self.length * self.duration
 
     def __getitem__(self, s):
         start = s.start
@@ -88,32 +95,32 @@ class Segment(object):
         if start is None:
             start = 0
         if stop is None:
-            stop = sum([slice_.stop-slice_.start for slice_ in self.slices])
+            stop = self.length
+
         if start<0:
-            start = sum([slice_.stop-slice_.start for slice_ in self.slices])+start
+            start = self.length+start
         if stop<0:
-            stop = sum([slice_.stop-slice_.start for slice_ in self.slices])+stop
+            stop = self.length+stop
         res = Segment()
+        res.n_electrodes = self.n_electrodes
         res.filepathes = []
         res.slices = []
         res.seq_numbers = []
 
-        res.duration = float(stop - start) / (
-        sum(slice_.stop - slice_.start for slice_ in self.slices)) * self.duration
+        res.duration = float(stop - start) / self.length * self.duration
         if self.data is not None:
             res.data = self.data[slice]
         else:
             res.data = None
         if self.tts is not None:
-            res.tts = self.tts - float(start) / (
-            sum([slice_.stop - slice_.start for slice_ in self.slices])) * self.duration
+            res.tts = self.tts - float(start) / self.length * self.duration
         else:
             res.tts = None
         res.type = self.type
 
 
         for filepath, slice_, seq_number in zip(self.filepathes, self.slices, self.seq_numbers):
-            if (start<=slice_.start and slice_.start<stop) or (start<=(slice_.stop-1) and (slice_.stop-1)<stop):
+            if not (slice_.stop<=start or stop<=slice_.start):
                 res.filepathes.append(filepath)
                 start__ = max(start, 0)
                 stop__ = min(stop, slice_.stop)
@@ -122,6 +129,7 @@ class Segment(object):
             start -= slice_.stop - slice_.start
             stop -= slice_.stop - slice_.start
 
+        res.length = sum([slice_.stop-slice_.start for slice_ in res.slices])
         return res
 
     def loadData(self):
@@ -142,10 +150,13 @@ class Segment(object):
         if self.data is None:
             res = 'Data not loaded \n'
         else:
-            res = 'Data shape : %s \n' + str(self.data.shape)
+            res = 'Data loaded \n'
         res += 'Duration : %s s\n' % round(self.duration, 3)
+        res += 'Length : %s \n' % self.length
+        res += 'N_electrodes : %s \n' % self.n_electrodes
         res += 'Type : %s \n' % self.type
-        res += 'Time to seizure : %s \n' % round(self.tts, 3)
+        if self.tts is not None:
+            res += 'Time to seizure : %s \n' % round(self.tts, 3)
         res += 'Data origin : \n'
         res += '\n'.join(['%s, %s:%s' % (ntpath.basename(fp), s.start, s.stop) for fp, s in zip(self.filepathes, self.slices)])
         return res
@@ -192,18 +203,28 @@ class Subject(object):
                 if segment.seq_numbers[0] is not None and previousSeq != 6:
                     print 'data missing - seq stoping at less than 1'
                 self.segments.append(currentSegment)
-        print '%s %s : read %s files into %s segments in %s s' % (self.race, self.n, filecount, len(self.segments), round(time.time()-start_time, 1))
+        print 'Reading %s %s : %s files into %s segments in %s s' % (self.race, self.n, filecount, len(self.segments), round(time.time()-start_time, 1))
     def __str__(self):
-        stats = {'interictal' : {}, 'preictal' : {}, 'test' : {}}
-        stats2 = {'interictal' : 0, 'preictal' : 0, 'test' : 0}
+        stats_count = {'interictal' : 0, 'preictal' : 0, 'test' : 0}
+        stats_duration = {'interictal' : {}, 'preictal' : {}, 'test' : {}}
+        stats_length = {'interictal' : {}, 'preictal' : {}, 'test' : {}}
+        stats_n_electrodes = {'interictal' : {}, 'preictal' : {}, 'test' : {}}
         for segment in self.segments:
-            stats2[segment.type] += 1
-            if segment.duration in stats[segment.type]:
-                stats[segment.type][segment.duration] += 1
+            stats_count[segment.type] += 1
+            if segment.duration in stats_duration[segment.type]:
+                stats_duration[segment.type][segment.duration] += 1
             else:
-                stats[segment.type][segment.duration] = 1
+                stats_duration[segment.type][segment.duration] = 1
+            if segment.length in stats_length[segment.type]:
+                stats_length[segment.type][segment.length] += 1
+            else:
+                stats_length[segment.type][segment.length] = 1
+            if segment.n_electrodes in stats_n_electrodes[segment.type]:
+                stats_n_electrodes[segment.type][segment.n_electrodes] += 1
+            else:
+                stats_n_electrodes[segment.type][segment.n_electrodes] = 1
 
         return ('%s %s \n' % (self.race, self.n) +
-                '%s interictaux :  %s \n' % (stats2['interictal'], str(stats['interictal'])) +
-                '%s preictaux : %s \n' % (stats2['preictal'], str(stats['preictal'])) +
-                '%s tests : %s' % (stats2['test'], str(stats['test'])))
+                '%s interictaux : duration %s, length %s, n_electrodes %s \n' % (stats_count['interictal'], str(stats_duration['interictal']), str(stats_length['interictal']), str(stats_n_electrodes['interictal'])) +
+                '%s preictaux : duration %s, length %s, n_electrodes %s \n' % (stats_count['preictal'], str(stats_duration['preictal']), str(stats_length['preictal']), str(stats_n_electrodes['preictal'])) +
+                '%s tests : duration %s, length %s, n_electrodes %s \n' % (stats_count['test'], str(stats_duration['test']), str(stats_length['test']), str(stats_n_electrodes['test'])))
