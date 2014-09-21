@@ -7,6 +7,7 @@ import numpy as np
 import time
 import ntpath
 import matplotlib.pyplot as plt
+import pickle
 
 class Segment(object):
     def __init__(self):
@@ -162,11 +163,13 @@ class Segment(object):
         res += '\n'.join(['%s, %s:%s' % (ntpath.basename(fp), s.start, s.stop) for fp, s in zip(self.filepathes, self.slices)])
         return res
 
-    def plot(self, electrodes = None, figsize=None):
+    def plot(self, electrodes = None, figsize = None, linewidth = None):
         if electrodes is None:
             electrodes = range(self.n_electrodes)
         if figsize is None:
             figsize = (18, len(electrodes)*1.5)
+        if linewidth is None:
+            linewidth = 0.4
         if self.data is None:
             raise Exception("data must be loaded before plotting")
 
@@ -176,7 +179,7 @@ class Segment(object):
 
         for i in electrodes:
             ax = axs[i]
-            ax.plot(np.linspace(0, self.duration, self.length+1), np.concatenate((self.data[i,:], [self.data[i,self.length-1]]), axis=1))
+            ax.plot(np.linspace(0, self.duration, self.length+1), np.concatenate((self.data[i,:], [self.data[i,self.length-1]]), axis=1), linewidth=linewidth)
             ax.set_xlim([0, self.duration])
             ax.set_ylabel(i, rotation = 'horizontal', fontweight = 'bold', fontsize = 16)
 
@@ -191,48 +194,52 @@ class Segment(object):
         return fig, axs
 
 class Subject(object):
-    def __init__(self, race, n):
+    def __init__(self, race, n, forceRead = False):
         start_time = time.time()
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')) as f:
+                settings = json.load(f)
+        self.dir = str(settings['data-dir']) + '/%s_%s' % (race, n)
         self.race = race
         self.n = n
-        print os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')) as f:
-            settings = json.load(f)
-        self.dir = str(settings['data-dir']) + '/%s_%s' % (self.race, self.n)
-
-        self.segments = []
-        filecount = 0
-        for type in ('preictal', 'interictal', 'test'):
-            i = 1
-            filepath = '%s/%s_%s_%s_segment_%04d.mat' % (self.dir, self.race, self.n, type, i)
-            currentSegment = None
-            previousSeq = -1
-
-            while os.path.exists(filepath):
-                filecount += 1
-                segment = Segment()
-                segment.fromFile(filepath)
-
-                if segment.seq_numbers[0] is not None and segment.seq_numbers[0] == previousSeq + 1:
-                    currentSegment += segment
-                else:
-                    if segment.seq_numbers[0] is not None and segment.seq_numbers[0] != 1:
-                        print 'data missing - seq starting at more than 1'
-                    if segment.seq_numbers[0] is not None and previousSeq != 6 and currentSegment is not None:
-                        print 'data missing - seq stoping at less than 1'
-                    if currentSegment is not None:
-                        self.segments.append(currentSegment)
-                    currentSegment = segment
-
-                previousSeq = segment.seq_numbers[0]
-
-                i += 1
+        if not forceRead and os.path.exists(self.dir + '/%s_%s.p' % (race, n)):
+            obj = pickle.load(open(self.dir + '/%s_%s.p' % (race, n), 'r'))
+            print 'Loaded previously read %s %s in %s s' % (race, n, round(time.time()-start_time, 1))
+            self.segments = obj.segments
+        else:
+            self.segments = []
+            filecount = 0
+            for type in ('preictal', 'interictal', 'test'):
+                i = 1
                 filepath = '%s/%s_%s_%s_segment_%04d.mat' % (self.dir, self.race, self.n, type, i)
-            if currentSegment is not None:
-                if segment.seq_numbers[0] is not None and previousSeq != 6:
-                    print 'data missing - seq stoping at less than 1'
-                self.segments.append(currentSegment)
-        print 'Reading %s %s : %s files into %s segments in %s s' % (self.race, self.n, filecount, len(self.segments), round(time.time()-start_time, 1))
+                currentSegment = None
+                previousSeq = -1
+
+                while os.path.exists(filepath):
+                    filecount += 1
+                    segment = Segment()
+                    segment.fromFile(filepath)
+
+                    if segment.seq_numbers[0] is not None and segment.seq_numbers[0] == previousSeq + 1:
+                        currentSegment += segment
+                    else:
+                        if segment.seq_numbers[0] is not None and segment.seq_numbers[0] != 1:
+                            print 'data missing - seq starting at more than 1'
+                        if segment.seq_numbers[0] is not None and previousSeq != 6 and currentSegment is not None:
+                            print 'data missing - seq stoping at less than 1'
+                        if currentSegment is not None:
+                            self.segments.append(currentSegment)
+                        currentSegment = segment
+
+                    previousSeq = segment.seq_numbers[0]
+
+                    i += 1
+                    filepath = '%s/%s_%s_%s_segment_%04d.mat' % (self.dir, self.race, self.n, type, i)
+                if currentSegment is not None:
+                    if segment.seq_numbers[0] is not None and previousSeq != 6:
+                        print 'data missing - seq stoping at less than 1'
+                    self.segments.append(currentSegment)
+                pickle.dump(self, open(self.dir + '/%s_%s.p' % (self.race, self.n), 'w'))
+            print 'Read %s %s : %s files into %s segments in %s s' % (self.race, self.n, filecount, len(self.segments), round(time.time()-start_time, 1))
     def __str__(self):
         stats_count = {'interictal' : 0, 'preictal' : 0, 'test' : 0}
         stats_duration = {'interictal' : {}, 'preictal' : {}, 'test' : {}}
