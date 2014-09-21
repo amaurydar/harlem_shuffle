@@ -6,6 +6,7 @@ import scipy.io
 import numpy as np
 import time
 import ntpath
+import matplotlib.pyplot as plt
 
 class Segment(object):
     def __init__(self):
@@ -109,7 +110,7 @@ class Segment(object):
 
         res.duration = float(stop - start) / self.length * self.duration
         if self.data is not None:
-            res.data = self.data[slice]
+            res.data = self.data[:,slice(start, stop)]
         else:
             res.data = None
         if self.tts is not None:
@@ -160,6 +161,34 @@ class Segment(object):
         res += 'Data origin : \n'
         res += '\n'.join(['%s, %s:%s' % (ntpath.basename(fp), s.start, s.stop) for fp, s in zip(self.filepathes, self.slices)])
         return res
+
+    def plot(self, electrodes = None, figsize=None):
+        if electrodes is None:
+            electrodes = range(self.n_electrodes)
+        if figsize is None:
+            figsize = (18, len(electrodes)*1.5)
+        if self.data is None:
+            raise Exception("data must be loaded before plotting")
+
+        fig, axs = plt.subplots(nrows=len(electrodes), ncols=1, figsize=figsize, sharex=True, sharey=True)
+        fig.subplots_adjust(bottom = 0.15)
+        fig.subplots_adjust(hspace=0)
+
+        for i in electrodes:
+            ax = axs[i]
+            ax.plot(np.linspace(0, self.duration, self.length+1), np.concatenate((self.data[i,:], [self.data[i,self.length-1]]), axis=1))
+            ax.set_xlim([0, self.duration])
+            ax.set_ylabel(i, rotation = 'horizontal', fontweight = 'bold', fontsize = 16)
+
+
+        axs[electrodes[-1]].set_xlabel('Time (s)', fontweight = 'bold', fontsize = 16)
+
+        lim = max(abs(ax.get_ylim()[0]), abs(ax.get_ylim()[1]))
+        for i in electrodes:
+            axs[i].set_ylim([-lim, lim])
+        plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
+
+        return fig, axs
 
 class Subject(object):
     def __init__(self, race, n):
