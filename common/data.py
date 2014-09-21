@@ -195,7 +195,7 @@ class Subject(object):
         start_time = time.time()
         self.race = race
         self.n = n
-
+        print os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')) as f:
             settings = json.load(f)
         self.dir = str(settings['data-dir']) + '/%s_%s' % (self.race, self.n)
