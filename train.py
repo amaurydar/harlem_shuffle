@@ -8,7 +8,7 @@ n_estimators = 300
 number = {'Dog' : 5,
           'Patient' : 2}
 for race in ('Dog', 'Patient'):
-    for i in range(1, number[race]+1):
+    for j in range(1, number[race]+1):
         subject = data.Subject(race, i)
 
         X_train = []
@@ -36,7 +36,7 @@ for race in ('Dog', 'Patient'):
                                      verbose=3)
         clf = clf.fit(X_train, y_train)
 
-        pickle.dump(clf, open('pickles/rf_clf_%s_%s_%s.p' % (n_estimators, race, i), 'w'))
+        pickle.dump(clf, open('pickles/rf_clf_%s_%s_%s.p' % (n_estimators, race, j), 'w'))
         clf = None
 
 
