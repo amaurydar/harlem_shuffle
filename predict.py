@@ -6,6 +6,7 @@ import pickle
 import os
 
 n_estimators = 300
+width = 239766
 
 number = {'Dog' : 5,
           'Patient' : 2}
@@ -15,7 +16,7 @@ with open('submission.txt','w') as f:
         for j in range(1, number[race]+1):
             subject = data.Subject(race, j)
 
-            clf = pickle.load(open('pickles/rf_clf_%s_%s_%s.p' % (n_estimators, race, j), 'r'))
+            clf = pickle.load(open('pickles/rf_clf_%s_%s_%s_%s.p' % (n_estimators, width, race, j), 'r'))
 
             for segment in subject.segments:
                 if segment.type == 'test':

@@ -3,7 +3,8 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 import pickle
 
-n_estimators = 300
+n_estimators = 1000
+width = 239766
 
 number = {'Dog' : 5,
           'Patient' : 2}
@@ -16,11 +17,10 @@ for race in ('Dog', 'Patient'):
 
         for segment in subject.segments:
             segment.loadData()
-            n = segment.point(10)
             i=0
-            while (i+1)*n<=segment.length:
+            while (i+1)*width<=segment.length:
                 if segment.type in ('preictal', 'interictal'):
-                    X_train.append(np.abs(np.fft.rfft(segment[i*n:(i+1)*n].data, axis = 1)[:,:80].flatten()))
+                    X_train.append(np.abs(np.fft.rfft(segment[i*width:(i+1)*width].data, axis = 1)[:,:80].flatten()))
                     y_train.append(int(segment.type == 'preictal'))
                 i += 1
             segment.data = None
@@ -36,7 +36,7 @@ for race in ('Dog', 'Patient'):
                                      verbose=3)
         clf = clf.fit(X_train, y_train)
 
-        pickle.dump(clf, open('pickles/rf_clf_%s_%s_%s.p' % (n_estimators, race, j), 'w'))
+        pickle.dump(clf, open('pickles/rf_clf_%s_%s_%s_%s.p' % (n_estimators, width, race, j), 'w'))
         clf = None
 
 
