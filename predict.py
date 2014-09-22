@@ -3,6 +3,7 @@ __author__ = 'amaury'
 from common import data
 import numpy as np
 import pickle
+import os
 
 n_estimators = 300
 
@@ -24,7 +25,7 @@ for race in ('Dog', 'Patient'):
                     X.append(np.abs(np.fft.rfft(segment[i*n:(i+1)*n].data, axis = 1)[:,:80].flatten()))
                     i += 1
                 segment.data = None
-                print segment.filepathes, clf.predict_proba(X)[:,1].mean()
+                print os.path.basename(segment.filepathes[0]), clf.predict_proba(X)[:,1].mean()
 
 
 
