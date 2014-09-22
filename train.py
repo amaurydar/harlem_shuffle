@@ -9,7 +9,7 @@ number = {'Dog' : 5,
           'Patient' : 2}
 for race in ('Dog', 'Patient'):
     for j in range(1, number[race]+1):
-        subject = data.Subject(race, i)
+        subject = data.Subject(race, j)
 
         X_train = []
         y_train = []
