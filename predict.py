@@ -10,7 +10,7 @@ n_estimators = 300
 number = {'Dog' : 5,
           'Patient' : 2}
 with open('submission.txt','w') as f:
-    f.write('clip,preictal')
+    f.write('clip,preictal\n')
     for race in ('Dog', 'Patient'):
         for j in range(1, number[race]+1):
             subject = data.Subject(race, j)
