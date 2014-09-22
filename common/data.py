@@ -9,6 +9,7 @@ import ntpath
 import matplotlib.pyplot as plt
 import pickle
 
+
 class Segment(object):
     def __init__(self):
         pass
@@ -195,13 +196,15 @@ class Segment(object):
 
 class Subject(object):
     def __init__(self, race, n, forceRead = False):
+        path = os.path.abspath(__file__)
+        modulename = path.split('/')[-3]
         start_time = time.time()
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')) as f:
                 settings = json.load(f)
         self.dir = str(settings['data-dir']) + '/%s_%s' % (race, n)
         self.race = race
         self.n = n
-        if not forceRead and os.path.exists(self.dir + '/%s_%s.p' % (race, n)):
+        if not forceRead and os.path.exists(self.dir + '/%s_%s_%s.p' % (race, n, modulename)):
             obj = pickle.load(open(self.dir + '/%s_%s.p' % (race, n), 'r'))
             print 'Loaded previously read %s %s in %s s' % (race, n, round(time.time()-start_time, 1))
             self.segments = obj.segments
@@ -238,7 +241,7 @@ class Subject(object):
                     if segment.seq_numbers[0] is not None and previousSeq != 6:
                         print 'data missing - seq stoping at less than 1'
                     self.segments.append(currentSegment)
-                pickle.dump(self, open(self.dir + '/%s_%s.p' % (self.race, self.n), 'w'))
+                pickle.dump(self, open(self.dir + '/%s_%s_%s.p' % (self.race, self.n, modulename), 'w'))
             print 'Read %s %s : %s files into %s segments in %s s' % (self.race, self.n, filecount, len(self.segments), round(time.time()-start_time, 1))
     def __str__(self):
         stats_count = {'interictal' : 0, 'preictal' : 0, 'test' : 0}

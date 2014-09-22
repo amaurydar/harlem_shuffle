@@ -36,7 +36,7 @@ for race in ('Dog', 'Patient'):
                                      verbose=3)
         clf = clf.fit(X_train, y_train)
 
-        pickle.dump(clf, 'pickles/rf_clf_%s_%s_%s.p' % (n_estimators, race, i))
+        pickle.dump(clf, open('pickles/rf_clf_%s_%s_%s.p' % (n_estimators, race, i), 'w'))
         clf = None
 
 
