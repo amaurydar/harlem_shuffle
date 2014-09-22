@@ -205,7 +205,7 @@ class Subject(object):
         self.race = race
         self.n = n
         if not forceRead and os.path.exists(self.dir + '/%s_%s_%s.p' % (race, n, modulename)):
-            obj = pickle.load(open(self.dir + '/%s_%s.p' % (race, n), 'r'))
+            obj = pickle.load(open(self.dir + '/%s_%s_%s.p' % (race, n, modulename), 'r'))
             print 'Loaded previously read %s %s in %s s' % (race, n, round(time.time()-start_time, 1))
             self.segments = obj.segments
         else:
