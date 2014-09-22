@@ -24,7 +24,7 @@ for race in ('Dog', 'Patient'):
                     X.append(np.abs(np.fft.rfft(segment[i*n:(i+1)*n].data, axis = 1)[:,:80].flatten()))
                     i += 1
                 segment.data = None
-                print segment.filepathes, clf.predict_proba(X)
+                print segment.filepathes, clf.predict_proba(X)[:,1]
 
 
 
