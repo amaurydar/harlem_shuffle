@@ -135,7 +135,7 @@ class Segment(object):
         res.length = sum([slice_.stop-slice_.start for slice_ in res.slices])
         return res
 
-    def loadData(self):
+    def loadData(self, verbose=0):
         start_time = time.time()
         for filepath, _slice in zip(self.filepathes, self.slices):
             mat = scipy.io.loadmat(filepath)
@@ -147,7 +147,8 @@ class Segment(object):
                 self.data = mat[name][0][0][0][:,_slice]
             else:
                 self.data = np.concatenate((self.data, mat[name][0][0][0][:,_slice]), axis = 1)
-        print 'Loaded segment data in %s s' % round(time.time()-start_time, 1)
+        if verbose>0:
+            print 'Loaded segment data in %s s' % round(time.time()-start_time, 1)
 
     def __str__(self):
         if self.data is None:
