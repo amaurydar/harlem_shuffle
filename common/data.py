@@ -197,7 +197,8 @@ class Segment(object):
 class Subject(object):
     def __init__(self, race, n, forceRead = False):
         path = os.path.abspath(__file__)
-        modulename = path.split('/')[-3]
+
+        modulename = os.path.basename(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         start_time = time.time()
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'LOCAL_SETTINGS.json')) as f:
                 settings = json.load(f)
