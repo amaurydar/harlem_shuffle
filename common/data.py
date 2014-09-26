@@ -132,6 +132,8 @@ class Segment(object):
             start -= slice_.stop - slice_.start
             stop -= slice_.stop - slice_.start
 
+        res.duration = float(sum([slice_.stop-slice_.start for slice_ in res.slices])) / self.length * self.duration
+
         res.length = sum([slice_.stop-slice_.start for slice_ in res.slices])
         return res
 
