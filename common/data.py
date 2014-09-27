@@ -110,7 +110,6 @@ class Segment(object):
         res.slices = []
         res.seq_numbers = []
 
-        res.duration = float(stop - start) / self.length * self.duration
         if self.data is not None:
             res.data = self.data[:,slice(start, stop)]
         else:
@@ -131,6 +130,8 @@ class Segment(object):
                 res.seq_numbers.append(seq_number)
             start -= slice_.stop - slice_.start
             stop -= slice_.stop - slice_.start
+
+        res.duration = float(sum([slice_.stop-slice_.start for slice_ in res.slices])) / self.length * self.duration
 
         res.length = sum([slice_.stop-slice_.start for slice_ in res.slices])
         return res
