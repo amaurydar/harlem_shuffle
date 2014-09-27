@@ -35,7 +35,7 @@ def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample):
 
     stockage=Stockage()
 
-    for t in range(0, duration-sample_length, sample_step):
+    for t in range(0, int(duration-sample_length), int(sample_step)):
 
         sample=segment[segment.point(t):segment.point(t+sample_length)]
         sample.loadData()
