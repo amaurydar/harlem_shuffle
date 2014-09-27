@@ -17,7 +17,10 @@ class Stockage:
 
 def dataSample(segment):
 
-    x=[]
+    x=np.array([])
+    for i in range(16):
+        temp=np.correlate(segment.data[i], segment.data[i], mode='full')
+        x=np.concatenate((x, temp), axis=0)
     return x
 
 def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample):
