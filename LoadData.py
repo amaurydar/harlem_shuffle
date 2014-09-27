@@ -32,10 +32,11 @@ def dataSample(segment):
 def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample):
 
     duration=int(segment.duration)
+    print duration
 
     stockage=Stockage()
 
-    for t in range(0, int(duration-sample_length), int(sample_step)):
+    for t in range(int(0), int(duration-sample_length), int(sample_step)):
 
         sample=segment[segment.point(t):segment.point(t+sample_length)]
         sample.loadData()
@@ -84,9 +85,9 @@ class Info:
 
             temp=dataSeg(hourSeg, y, n, f)
 
-            self.data.X=self.data.X+temp.X
-            self.data.Y=self.data.Y+temp.Y
-            self.data.hourIndex=self.data.hourIndex+temp.hourIndex
-            self.data.timeS=self.data.timeS+temp.timeS
+            self.data.X=np.concatenate((self.data.X,temp.X), axis=0)
+            self.data.Y==np.concatenate((self.data.Y,temp.Y), axis=0)
+            self.data.hourIndex==np.concatenate((self.data.hourIndex,temp.hourIndex), axis=0)
+            self.data.timeS==np.concatenate((self.data.timeS,temp.timeS), axis=0)
 
-            print "Temps hourSegment: "+str(time.time()-timestamp)+" - type = "+str(y)
+            print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" - type = "+str(y)
