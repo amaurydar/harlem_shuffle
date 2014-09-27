@@ -4,9 +4,6 @@ import pickle
 import numpy as np
 import time
 
-sample_length=1
-sample_step=10
-
 class Stockage:
 
     def __init__(self):
@@ -29,21 +26,24 @@ def dataSample(segment):
 
     return x
 
-def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample):
+def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample, sample_length=1, sample_step=10):
 
     duration=segment.duration
 
     stockage=Stockage()
 
-    for t in range(int(0), int(duration-sample_length), int(sample_step)):
+    sample_points=int(sample_length*segment.length/segment.duration)
+    sample_points_steps=int(sample_step*segment.length/segment.duration)
 
-        sample=segment[segment.point(t):segment.point(t+sample_length)]
+    for t in range(0, segment.length-sample_points, sample_points_steps):
+
+        sample=segment[t:t+sample_points]
         sample.loadData()
 
         stockage.X.append(f(sample))
         stockage.Y.append(y)
         stockage.hourIndex.append(hourIndex)
-        stockage.timeS.append(segment.tts-t)
+        stockage.timeS.append(segment.tts-segment.time(t))
 
     return stockage
 
@@ -54,6 +54,13 @@ class Info:
         self.num=num
         self.subject=0
         self.data=Stockage()
+
+        self.setParam()
+
+    def setParam(self, sample_length=1, sample_step=10, testData=False):
+        self.sample_length=sample_length
+        self.sample_step=sample_step
+        self.testData=testData
 
     def saveFile(self, name):
 
@@ -80,13 +87,19 @@ class Info:
                 y=1
             elif hourSeg.type=='test':
                 y=-1
-                break # to delete for submitions
+                if self.testData==False:
+                    break
 
-            temp=dataSeg(hourSeg, y, n, f)
+            temp=dataSeg(hourSeg, y, n, f, self.sample_length, self.sample_step)
 
-            self.data.X=np.concatenate((self.data.X,temp.X), axis=0)
-            self.data.Y=np.concatenate((self.data.Y,temp.Y), axis=0)
-            self.data.hourIndex=np.concatenate((self.data.hourIndex,temp.hourIndex), axis=0)
-            self.data.timeS=np.concatenate((self.data.timeS,temp.timeS), axis=0)
+            #self.data.X=np.concatenate((self.data.X,temp.X), axis=0)
+            #self.data.Y=np.concatenate((self.data.Y,temp.Y), axis=0)
+            #self.data.hourIndex=np.concatenate((self.data.hourIndex,temp.hourIndex), axis=0)
+            #self.data.timeS=np.concatenate((self.data.timeS,temp.timeS), axis=0)
 
-            print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" - type = "+str(y)
+            self.data.X=self.data.X+temp.X
+            self.data.Y=self.data.Y+temp.Y
+            self.data.hourIndex=self.data.hourIndex+temp.hourIndex
+            self.data.timeS=self.data.timeS+temp.timeS
+
+            print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" ; type = "+str(y)+" ; npoints = "+str(len(temp.Y))
