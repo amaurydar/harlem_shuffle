@@ -17,21 +17,21 @@ class Stockage:
 
 def dataSample(segment):
 
-    p=0
     x=np.array([])
     for i in range(16):
         s=segment.data[i]-np.mean(segment.data[i])
         temp=np.correlate(s, s, mode='full')
         x=np.concatenate( (x, temp[len(temp)/2:], np.log10(np.absolute(np.fft.rfft(s)[1:50]))), axis=0)
-        if i>0:
+
+        for j in range(16):
+            p=segment.data[j]-np.mean(segment.data[j])
             x=np.concatenate((x, np.correlate(s, p)), axis=0)
-        p=s
 
     return x
 
 def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample):
 
-    duration=segment.duration
+    duration=int(segment.duration)
 
     stockage=Stockage()
 
