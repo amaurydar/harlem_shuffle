@@ -34,6 +34,8 @@ def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample):
     #duration=int(segment.duration)
     #print duration
     duration=3600
+    sample_length=1
+    sample_step=10
 
     stockage=Stockage()
 
