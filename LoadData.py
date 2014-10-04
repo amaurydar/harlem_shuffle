@@ -12,6 +12,13 @@ class Stockage:
         self.hourIndex=[]
         self.timeS=[]
 
+def split(data, n=2):
+    r=[]
+    for i in range(0, len(data)-n+1,n):
+       r.append(sum(data[i:i+n])/n)
+
+    return r
+
 def dataSample(segment):
 
     x=np.array([])
