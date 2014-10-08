@@ -93,6 +93,9 @@ class Info:
 
         self.data=Stockage()
 
+        self.data.X=0
+        self.data.Y=0
+
         for n,hourSeg in enumerate(self.subject.segments):
             timestamp=time.time()
 
@@ -111,8 +114,16 @@ class Info:
             #self.data.hourIndex=np.concatenate((self.data.hourIndex,temp.hourIndex), axis=0)
             #self.data.timeS=np.concatenate((self.data.timeS,temp.timeS), axis=0)
 
-            self.data.X=self.data.X+temp.X
-            self.data.Y=self.data.Y+temp.Y
+            #self.data.X=self.data.X+temp.X
+            #self.data.Y=self.data.Y+temp.Y
+
+            if self.data.X==0:
+                self.data.X=temp.X
+                self.data.Y=temp.Y
+            else:
+                self.data.X=np.append(self.data.X, temp.X, axis=0)
+                self.data.Y=np.append(self.data.Y, temp.Y, axis=0)
+
             self.data.hourIndex=self.data.hourIndex+temp.hourIndex
             self.data.timeS=self.data.timeS+temp.timeS
 
