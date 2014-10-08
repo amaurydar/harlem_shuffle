@@ -7,8 +7,8 @@ import time
 class Stockage:
 
     def __init__(self):
-        self.X=[]
-        self.Y=[]
+        self.X=np.array([])
+        self.Y=np.array([])
         self.hourIndex=[]
         self.timeS=[]
 
@@ -42,13 +42,20 @@ def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample, sample_length=1, sample_s
     sample_points=int(sample_length*segment.length/segment.duration)
     sample_points_steps=int(sample_step*segment.length/segment.duration)
 
+    stockage.X=np.empty(shape=[0, len( f(segment[:sample_points]) )])
+    stockage.Y=np.empty(shape=[0,1])
+
     for t in range(0, segment.length-sample_points, sample_points_steps):
 
         sample=segment[t:t+sample_points]
         sample.loadData()
 
-        stockage.X.append(f(sample))
-        stockage.Y.append(y)
+        #stockage.X.append(f(sample))
+        #stockage.Y.append(y)
+
+        stockage.X=np.append(stockage.X, f(sample), axis=0)
+        stockage.Y=np.append(stockage.Y, np.array([[y]]), axis=0)
+
         stockage.hourIndex.append(hourIndex)
         stockage.timeS.append(segment.tts-segment.time(t))
 
