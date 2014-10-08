@@ -7,8 +7,8 @@ import time
 class Stockage:
 
     def __init__(self):
-        self.X=np.array([])
-        self.Y=np.array([])
+        self.X=np.array([[]])
+        self.Y=np.array([[]])
         self.hourIndex=[]
         self.timeS=[]
 
