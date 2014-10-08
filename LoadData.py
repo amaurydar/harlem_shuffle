@@ -53,7 +53,7 @@ def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample, sample_length=1, sample_s
         #stockage.X.append(f(sample))
         #stockage.Y.append(y)
 
-        stockage.X=np.append(stockage.X, f(sample), axis=0)
+        stockage.X=np.append(stockage.X, np.array([f(sample)]), axis=0)
         stockage.Y=np.append(stockage.Y, np.array([[y]]), axis=0)
 
         stockage.hourIndex.append(hourIndex)
@@ -93,8 +93,7 @@ class Info:
 
         self.data=Stockage()
 
-        self.data.X=0
-        self.data.Y=0
+        start=True
 
         for n,hourSeg in enumerate(self.subject.segments):
             timestamp=time.time()
@@ -117,9 +116,10 @@ class Info:
             #self.data.X=self.data.X+temp.X
             #self.data.Y=self.data.Y+temp.Y
 
-            if self.data.X==0:
+            if start:
                 self.data.X=temp.X
                 self.data.Y=temp.Y
+                start=False
             else:
                 self.data.X=np.append(self.data.X, temp.X, axis=0)
                 self.data.Y=np.append(self.data.Y, temp.Y, axis=0)
