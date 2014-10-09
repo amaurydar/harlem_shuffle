@@ -8,8 +8,8 @@ class Stockage:
 
     def __init__(self):
         self.X=np.array([[]])
-        self.Y=np.array([[]])
-        self.hourIndex=[]
+        self.Y=np.array([])
+        self.hourIndex=np.array([])
         self.timeS=[]
 
 def split(data, n=2):
@@ -57,14 +57,19 @@ def dataSeg(segment, y=-1, hourIndex=-1, f=dataSample, sample_length=1, sample_s
 
         if start:
             stockage.X=np.array([f(sample)])
-            stockage.Y=np.array([[y]])
+            stockage.Y=np.array([y])
+            stockage.hourIndex=np.array([hourIndex])
+
             start=False
         else:
             stockage.X=np.append(stockage.X, np.array([f(sample)]), axis=0)
-            stockage.Y=np.append(stockage.Y, np.array([[y]]), axis=0)
+            stockage.Y=np.append(stockage.Y, y)
+            stockage.hourIndex=np.append(stockage.hourIndex, hourIndex)
 
-        stockage.hourIndex.append(hourIndex)
-        stockage.timeS.append(segment.tts-segment.time(t))
+        if y==-1:
+            stockage.timeS.append(0)
+        else:
+            stockage.timeS.append(segment.tts-segment.time(t))
 
     return stockage
 
@@ -126,12 +131,15 @@ class Info:
             if start:
                 self.data.X=temp.X
                 self.data.Y=temp.Y
+                self.data.hourIndex=temp.hourIndex
+
                 start=False
             else:
                 self.data.X=np.append(self.data.X, temp.X, axis=0)
-                self.data.Y=np.append(self.data.Y, temp.Y, axis=0)
+                self.data.Y=np.append(self.data.Y, temp.Y)
+                self.data.hourIndex=np.append(self.data.hourIndex, temp.hourIndex)
 
-            self.data.hourIndex=self.data.hourIndex+temp.hourIndex
+
             self.data.timeS=self.data.timeS+temp.timeS
 
             print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" ; type = "+str(y)+" ; npoints = "+str(len(temp.Y))
