@@ -100,7 +100,7 @@ class Info:
         self.data=pickle.load(f)
         f.close()
 
-    def load(self, f=dataSample):
+    def load(self, f=dataSample, aff=False):
         self.subject=data.Subject(self.race, self.num)
 
         self.data=Stockage()
@@ -142,4 +142,5 @@ class Info:
 
             self.data.timeS=self.data.timeS+temp.timeS
 
-            print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" ; type = "+str(y)+" ; npoints = "+str(len(temp.Y))
+            if aff:
+                print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" ; type = "+str(y)+" ; npoints = "+str(len(temp.Y))
