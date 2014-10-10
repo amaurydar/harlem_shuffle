@@ -83,9 +83,12 @@ class Info:
 
         self.setParam()
 
+        self.norm_ntest=500
+        self.norm_ntrain=100
+
     def setParam(self, sample_length=1, sample_step=10, testData=False):
         self.sample_length=sample_length
-        self.sample_step=sample_step
+        self.sample_step_wanted=sample_step
         self.testData=testData
 
     def saveFile(self, name):
@@ -101,9 +104,24 @@ class Info:
         f.close()
 
     def load(self, f=dataSample, aff=False):
-        self.subject=data.Subject(self.race, self.num)
 
+        self.subject=data.Subject(self.race, self.num)
         self.data=Stockage()
+
+        self.ntest=0
+        self.ntrain=0
+
+        for seg in self.subject.segments:
+            if seg.type=='test':
+                self.ntest+=1
+            else:
+                self.ntrain+=1
+
+        if self.testData:
+            self.sample_step=1.0*self.sample_step_wanted*self.ntest/self.norm_ntest
+        else:
+            self.sample_step=1.0*self.sample_step_wanted*self.ntrain/self.norm_ntrain
+        print "actual sample_step: " +str(self.sample_step)
 
         start=True
 
@@ -115,32 +133,34 @@ class Info:
                 y=1
             elif hourSeg.type=='test':
                 y=-1
-                if self.testData==False:
-                    break
-
-            temp=dataSeg(hourSeg, y, n, f, self.sample_length, self.sample_step)
-
-            #self.data.X=np.concatenate((self.data.X,temp.X), axis=0)
-            #self.data.Y=np.concatenate((self.data.Y,temp.Y), axis=0)
-            #self.data.hourIndex=np.concatenate((self.data.hourIndex,temp.hourIndex), axis=0)
-            #self.data.timeS=np.concatenate((self.data.timeS,temp.timeS), axis=0)
-
-            #self.data.X=self.data.X+temp.X
-            #self.data.Y=self.data.Y+temp.Y
-
-            if start:
-                self.data.X=temp.X
-                self.data.Y=temp.Y
-                self.data.hourIndex=temp.hourIndex
-
-                start=False
             else:
-                self.data.X=np.append(self.data.X, temp.X, axis=0)
-                self.data.Y=np.append(self.data.Y, temp.Y)
-                self.data.hourIndex=np.append(self.data.hourIndex, temp.hourIndex)
+                y=0
+
+            if ((self.testData==True and y==-1) or (self.testData==False and y!=-1)):
+
+                temp=dataSeg(hourSeg, y, n, f, self.sample_length, self.sample_step)
+
+                #self.data.X=np.concatenate((self.data.X,temp.X), axis=0)
+                #self.data.Y=np.concatenate((self.data.Y,temp.Y), axis=0)
+                #self.data.hourIndex=np.concatenate((self.data.hourIndex,temp.hourIndex), axis=0)
+                #self.data.timeS=np.concatenate((self.data.timeS,temp.timeS), axis=0)
+
+                #self.data.X=self.data.X+temp.X
+                #self.data.Y=self.data.Y+temp.Y
+
+                if start:
+                    self.data.X=temp.X
+                    self.data.Y=temp.Y
+                    self.data.hourIndex=temp.hourIndex
+
+                    start=False
+                else:
+                    self.data.X=np.append(self.data.X, temp.X, axis=0)
+                    self.data.Y=np.append(self.data.Y, temp.Y)
+                    self.data.hourIndex=np.append(self.data.hourIndex, temp.hourIndex)
 
 
-            self.data.timeS=self.data.timeS+temp.timeS
+                self.data.timeS=self.data.timeS+temp.timeS
 
-            if aff:
-                print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" ; type = "+str(y)+" ; npoints = "+str(len(temp.Y))
+                if aff:
+                    print "Temps hourSegment ( "+str(n)+" ): "+str(time.time()-timestamp)+" ; type = "+str(y)+" ; npoints = "+str(len(temp.Y))
